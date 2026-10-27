@@ -1,0 +1,35 @@
+{
+  "name": "@goldloan/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=../../.env src/server.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "eval": "tsx --env-file-if-exists=../../.env evals/runEvals.ts",
+    "prisma": "dotenv -e ../../.env -- prisma",
+    "db:migrate": "dotenv -e ../../.env -- prisma migrate deploy",
+    "db:seed": "dotenv -e ../../.env -- prisma db seed",
+    "db:reset": "dotenv -e ../../.env -- prisma migrate reset --force"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@goldloan/shared": "*",
+    "@prisma/client": "^6.19.3",
+    "express": "^5.3.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.19.0",
+    "@types/supertest": "^7.2.1",
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^6.19.3",
+    "supertest": "^7.3.1",
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.5"
+  }
+}
