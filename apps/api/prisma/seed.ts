@@ -1,2 +1,11 @@
-// Placeholder: loan schemes are seeded in a later phase (see CLAUDE.md §4.1).
-console.log('[seed] nothing to seed yet');
+import { PrismaClient } from '@prisma/client';
+import { seedPlans } from './plans';
+
+const prisma = new PrismaClient();
+
+try {
+  const count = await seedPlans(prisma);
+  console.log(`[seed] upserted ${count} loan schemes`);
+} finally {
+  await prisma.$disconnect();
+}

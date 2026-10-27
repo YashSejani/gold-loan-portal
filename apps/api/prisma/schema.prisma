@@ -1,4 +1,5 @@
-// Models are added in a later phase (see CLAUDE.md §7).
+// See CLAUDE.md §7. Extra CHECK constraints, the generated applicationId column and the
+// Lead id sequence start (1001) live in the migration SQL, not here.
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,4 +7,59 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum RepaymentType {
+  BULLET
+  EMI
+}
+
+enum LeadStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum Channel {
+  FORM
+  AGENT
+}
+
+model LoanScheme {
+  id            String        @id
+  name          String
+  annualRateBps Int
+  tenureMonths  Int
+  maxLtvBps     Int // CHECK 0 < maxLtvBps <= 7500
+  repaymentType RepaymentType
+  description   String
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  leads         Lead[]
+}
+
+model Lead {
+  id                  Int        @id @default(autoincrement()) // sequence starts at 1001
+  // Generated column in Postgres: 'GL-' || id. Never written by the app.
+  applicationId       String     @unique @default(dbgenerated())
+  fullName            String
+  mobileNumber        String // raw, used only for the 7-day dedupe
+  grossWeightMg       Int
+  netWeightMg         Int
+  karat               Int
+  planId              String
+  plan                LoanScheme @relation(fields: [planId], references: [id])
+  // Snapshots of the server-side quote at submission time
+  rate24kPaisePerGram Int
+  appliedLtvBps       Int
+  pureGoldMg          Decimal    @db.Decimal(14, 3)
+  goldValuePaise      BigInt
+  eligibleLoanRupees  Int
+  status              LeadStatus @default(SUBMITTED)
+  channel             Channel    @default(FORM)
+  createdAt           DateTime   @default(now())
+
+  @@index([mobileNumber, createdAt])
 }

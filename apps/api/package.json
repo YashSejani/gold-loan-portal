@@ -11,7 +11,8 @@
     "prisma": "dotenv -e ../../.env -- prisma",
     "db:migrate": "dotenv -e ../../.env -- prisma migrate deploy",
     "db:seed": "dotenv -e ../../.env -- prisma db seed",
-    "db:reset": "dotenv -e ../../.env -- prisma migrate reset --force"
+    "db:reset": "dotenv -e ../../.env -- prisma migrate reset --force",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

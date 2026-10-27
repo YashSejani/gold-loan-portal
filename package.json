@@ -16,7 +16,7 @@
     "db:migrate": "npm run db:migrate -w apps/api",
     "db:seed": "npm run db:seed -w apps/api",
     "db:reset": "npm run db:reset -w apps/api",
-    "test": "npm run test --workspaces --if-present",
+    "test": "node scripts/ensure-env.mjs && npm run db:up && npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "eval": "npm run eval -w apps/api"
   },
