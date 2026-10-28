@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Stepper } from '../components/Stepper';
+import { LoanAssist } from '../components/chat/LoanAssist';
 import { SubmittedScreen } from '../components/SubmittedScreen';
 import { StepConfirm } from '../components/steps/StepConfirm';
 import { StepDetails } from '../components/steps/StepDetails';
@@ -32,6 +33,7 @@ function ApplyFlow() {
         <p className="text-slate-600">
           Get a preliminary offer in three steps. The final amount depends on a physical check of your jewellery.
         </p>
+        <LoanAssist />
       </header>
 
       {state.submitted ? (
