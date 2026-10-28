@@ -36,19 +36,6 @@ Deadline: **28 Oct, 4:00 pm**. Order: **Required (Phases 0–14) → submittable
 ```
 For big phases (0, 6, 11), ask Claude Code to **plan first** (plan mode) and approve the plan before it edits.
 
-## Time plan (be strict)
-
-| Time | Phases |
-|---|---|
-| Tonight 23:45–03:30 | 0–6 (backend complete, test cases 1–6 green) |
-| Sleep ~4–5 h | |
-| 08:30–11:00 | 7–10 (web app) |
-| 11:00–13:00 | 11–13 (agent + chat + evals) |
-| 13:00–13:30 | 14 (**submittable push**; you're safe from here on) |
-| 13:30–15:15 | Bonus in this order: 15 → 16 → 17 → 18 → 19 (stop wherever 15:15 arrives) |
-| 15:15–15:45 | 20 (final docs + clean-clone test + push), then submit |
-
-Bonus scoring: max +5 each, **+15 total**, so three bonuses done well already hit the cap. B1, B4 and B2 come first for that reason. B3 is last.
 
 ---
 
