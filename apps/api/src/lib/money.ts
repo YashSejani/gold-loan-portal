@@ -48,6 +48,26 @@ function scaledToNumber(value: bigint, decimals: number): number {
   return Number(`${text.slice(0, -decimals)}.${text.slice(-decimals)}`);
 }
 
+/** Plan LTV as actually applied: never above 75%. */
+export function capLtvBps(maxLtvBps: number): number {
+  return Math.min(maxLtvBps, MAX_LTV_BPS);
+}
+
+/** 1050 bps → 10.5 (percent), for display. */
+export function bpsToPercent(bps: number): number {
+  return scaledToNumber(BigInt(bps), 2);
+}
+
+/** 7500 bps → 0.75 (ratio), for display. */
+export function bpsToRatio(bps: number): number {
+  return scaledToNumber(BigInt(bps), 4);
+}
+
+/** 700000 paise → 7000 (rupees), for display. */
+export function paiseToRupees(paise: bigint): number {
+  return scaledToNumber(paise, 2);
+}
+
 export interface QuoteInput {
   netMg: bigint;
   karat: number;
@@ -76,7 +96,7 @@ export function calculateQuote({ netMg, karat, ratePaisePerGram, maxLtvBps }: Qu
   if (ratePaisePerGram <= 0n) throw new RangeError('ratePaisePerGram must be positive');
   if (!Number.isInteger(maxLtvBps) || maxLtvBps <= 0) throw new RangeError('maxLtvBps must be a positive integer');
 
-  const appliedLtvBps = Math.min(maxLtvBps, MAX_LTV_BPS);
+  const appliedLtvBps = capLtvBps(maxLtvBps);
   const k = BigInt(karat);
   const ltv = BigInt(appliedLtvBps);
 
@@ -92,7 +112,7 @@ export function calculateQuote({ netMg, karat, ratePaisePerGram, maxLtvBps }: Qu
     pureGoldMg,
     pureGoldGrams: scaledToNumber(pureGoldMg, 3),
     goldValuePaise,
-    goldValueRupees: scaledToNumber(goldValuePaise, 2),
+    goldValueRupees: paiseToRupees(goldValuePaise),
     appliedLtvBps,
     eligibleLoanRupees: Number(eligibleLoanRupees),
   };
