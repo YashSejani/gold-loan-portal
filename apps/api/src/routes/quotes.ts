@@ -6,5 +6,6 @@ import * as quoteService from '../services/quoteService';
 export const quotesRouter = Router();
 
 quotesRouter.post('/', validateBody(QuoteRequestSchema), async (req, res) => {
-  res.json({ data: await quoteService.calculate(req.body as QuoteRequest) });
+  const quote = await quoteService.calculate(req.body as QuoteRequest);
+  res.json({ data: quoteService.toQuoteDto(quote) });
 });

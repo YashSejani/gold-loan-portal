@@ -63,6 +63,11 @@ export function bpsToRatio(bps: number): number {
   return scaledToNumber(BigInt(bps), 4);
 }
 
+/** 41250 mg → 41.25 (grams), for display. */
+export function mgToGrams(mg: bigint): number {
+  return scaledToNumber(mg, 3);
+}
+
 /** 700000 paise → 7000 (rupees), for display. */
 export function paiseToRupees(paise: bigint): number {
   return scaledToNumber(paise, 2);
@@ -110,7 +115,7 @@ export function calculateQuote({ netMg, karat, ratePaisePerGram, maxLtvBps }: Qu
 
   return {
     pureGoldMg,
-    pureGoldGrams: scaledToNumber(pureGoldMg, 3),
+    pureGoldGrams: mgToGrams(pureGoldMg),
     goldValuePaise,
     goldValueRupees: paiseToRupees(goldValuePaise),
     appliedLtvBps,

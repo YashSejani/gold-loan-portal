@@ -7,6 +7,7 @@ import { createHttpLogger, logger as defaultLogger } from './logger';
 import { errorHandler } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 import { healthRouter } from './routes/health';
+import { leadsRouter } from './routes/leads';
 import { quotesRouter } from './routes/quotes';
 import { schemesRouter } from './routes/schemes';
 
@@ -28,6 +29,7 @@ export function createApp({ logger = defaultLogger, extraRoutes }: AppOptions = 
   api.use('/health', healthRouter);
   api.use('/loan-schemes', schemesRouter);
   api.use('/quotes', quotesRouter);
+  api.use('/leads', leadsRouter);
   if (extraRoutes) api.use(extraRoutes);
   app.use('/api/v1', api);
 

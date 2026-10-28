@@ -1,11 +1,12 @@
 import type { QuoteRequest } from '@goldloan/shared';
-import type { RepaymentType } from '@prisma/client';
+import type { LoanScheme, RepaymentType } from '@prisma/client';
 import { InternalError, ValidationError } from '../lib/errors';
 import {
   bpsToPercent,
   bpsToRatio,
   calculateQuote,
   MAX_LTV_BPS,
+  mgToGrams,
   paiseToRupees,
   parseDecimalToMg,
   type QuoteInput,
@@ -13,7 +14,22 @@ import {
 } from '../lib/money';
 import { logger } from '../logger';
 import { getGoldRate } from './goldRateService';
-import { listActive } from './schemeService';
+import { getActiveById, listActive } from './schemeService';
+
+/** Exact server-side quote (integers). Lead snapshots are taken from this, never from a DTO. */
+export interface Quote {
+  input: QuoteRequest;
+  ratePaisePerGram: bigint;
+  pureGoldMg: bigint;
+  goldValuePaise: bigint;
+  plans: PlanQuote[];
+}
+
+export interface PlanQuote {
+  plan: LoanScheme;
+  appliedLtvBps: number;
+  eligibleLoanRupees: number;
+}
 
 export interface PlanQuoteDto {
   planId: string;
@@ -35,11 +51,15 @@ export interface QuoteDto {
 }
 
 /**
- * The single quote function (CLAUDE.md §6), used by POST /quotes and, later, the agent tool
- * and lead creation. Reads plans and the rate; never writes. Throws only AppErrors.
+ * The single quote function (CLAUDE.md §6), used by POST /quotes, lead creation and the agent.
+ * Without planId it quotes every active plan; with planId only that plan (404 if missing/inactive).
+ * Reads plans and the current rate; never writes. Throws only AppErrors.
  */
-export async function calculate(input: QuoteRequest): Promise<QuoteDto> {
-  const [ratePaisePerGram, plans] = await Promise.all([getGoldRate(), listActive()]);
+export async function calculate(input: QuoteRequest, options: { planId?: string } = {}): Promise<Quote> {
+  const [ratePaisePerGram, plans] = await Promise.all([
+    getGoldRate(),
+    options.planId ? getActiveById(options.planId).then((plan) => [plan]) : listActive(),
+  ]);
   const netMg = toMilligrams(input.netWeightGrams);
   const quoteFor = (maxLtvBps: number) => checkedQuote({ netMg, karat: input.karat, ratePaisePerGram, maxLtvBps });
 
@@ -48,22 +68,32 @@ export async function calculate(input: QuoteRequest): Promise<QuoteDto> {
 
   return {
     input: { netWeightGrams: input.netWeightGrams, grossWeightGrams: input.grossWeightGrams, karat: input.karat },
-    rate24kPerGram: paiseToRupees(ratePaisePerGram),
-    pureGoldGrams: base.pureGoldGrams,
-    goldValueRupees: base.goldValueRupees,
-    goldValuePaise: Number(base.goldValuePaise),
+    ratePaisePerGram,
+    pureGoldMg: base.pureGoldMg,
+    goldValuePaise: base.goldValuePaise,
     plans: plans.map((plan) => {
       const quote = quoteFor(plan.maxLtvBps);
-      return {
-        planId: plan.id,
-        planName: plan.name,
-        appliedLtv: bpsToRatio(quote.appliedLtvBps),
-        eligibleLoan: quote.eligibleLoanRupees,
-        annualInterestRate: bpsToPercent(plan.annualRateBps),
-        tenureMonths: plan.tenureMonths,
-        repaymentType: plan.repaymentType,
-      };
+      return { plan, appliedLtvBps: quote.appliedLtvBps, eligibleLoanRupees: quote.eligibleLoanRupees };
     }),
+  };
+}
+
+export function toQuoteDto(quote: Quote): QuoteDto {
+  return {
+    input: quote.input,
+    rate24kPerGram: paiseToRupees(quote.ratePaisePerGram),
+    pureGoldGrams: mgToGrams(quote.pureGoldMg),
+    goldValueRupees: paiseToRupees(quote.goldValuePaise),
+    goldValuePaise: Number(quote.goldValuePaise),
+    plans: quote.plans.map(({ plan, appliedLtvBps, eligibleLoanRupees }) => ({
+      planId: plan.id,
+      planName: plan.name,
+      appliedLtv: bpsToRatio(appliedLtvBps),
+      eligibleLoan: eligibleLoanRupees,
+      annualInterestRate: bpsToPercent(plan.annualRateBps),
+      tenureMonths: plan.tenureMonths,
+      repaymentType: plan.repaymentType,
+    })),
   };
 }
 
