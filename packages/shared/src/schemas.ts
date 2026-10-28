@@ -111,3 +111,28 @@ export function zodToFields(error: z.ZodError): FieldError[] {
   }
   return [...fields].map(([field, message]) => ({ field, message }));
 }
+
+// ---- Loan Assist chat (CLAUDE.md §9.2) ----
+
+export const CHAT_MESSAGE_MAX_LENGTH = 1000;
+
+export const ChatRequestSchema = z.object(
+  {
+    sessionId: z.uuid({ error: 'Invalid chat session' }).optional(),
+    message: z
+      .string({ error: 'Type a message' })
+      .trim()
+      .min(1, { error: 'Type a message' })
+      .max(CHAT_MESSAGE_MAX_LENGTH, { error: `Messages can be at most ${CHAT_MESSAGE_MAX_LENGTH} characters` }),
+  },
+  { error: MESSAGES.body },
+);
+
+/** Body of /chat/confirm and /chat/cancel. */
+export const ChatDecisionSchema = z.object(
+  {
+    sessionId: z.uuid({ error: 'Invalid chat session' }),
+    pendingId: z.uuid({ error: 'Invalid confirmation' }),
+  },
+  { error: MESSAGES.body },
+);

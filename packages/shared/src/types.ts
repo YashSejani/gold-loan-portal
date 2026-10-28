@@ -1,5 +1,13 @@
 import type { z } from 'zod';
-import type { ApplicantDetailsSchema, CHANNELS, KARATS, LeadRequestSchema, QuoteRequestSchema } from './schemas';
+import type {
+  ApplicantDetailsSchema,
+  CHANNELS,
+  ChatDecisionSchema,
+  ChatRequestSchema,
+  KARATS,
+  LeadRequestSchema,
+  QuoteRequestSchema,
+} from './schemas';
 
 export type Karat = (typeof KARATS)[number];
 export type Channel = (typeof CHANNELS)[number];
@@ -69,4 +77,62 @@ export interface LeadDto {
   goldValueRupees: number;
   appliedLtv: number;
   eligibleLoan: number;
+}
+
+// ---- Loan Assist chat ----
+
+export type ChatRequest = z.output<typeof ChatRequestSchema>;
+export type ChatDecision = z.output<typeof ChatDecisionSchema>;
+
+/** What the user confirms in the UI card. Every number comes from the server quote. */
+export interface PendingSummaryDto {
+  fullName: string;
+  /** Masked, e.g. 9876XXXX10. */
+  mobileNumber: string;
+  grossWeightGrams: number;
+  netWeightGrams: number;
+  karat: number;
+  planId: string;
+  planName: string;
+  repaymentType: RepaymentType;
+  annualInterestRate: number;
+  tenureMonths: number;
+  rate24kPerGram: number;
+  pureGoldGrams: number;
+  goldValueRupees: number;
+  appliedLtv: number;
+  eligibleLoan: number;
+  expiresAt: string;
+}
+
+export interface PendingConfirmationDto {
+  pendingId: string;
+  summary: PendingSummaryDto;
+}
+
+export interface ToolEventDto {
+  tool: string;
+  status: 'ok' | 'error';
+  result?: unknown;
+}
+
+export interface ChatErrorDto {
+  code: string;
+  message: string;
+  fields: FieldError[];
+  details?: Record<string, unknown>;
+}
+
+export type ChatOutcomeDto =
+  | { status: 'CREATED'; lead: LeadDto }
+  | { status: 'FAILED'; error: ChatErrorDto }
+  | { status: 'CANCELLED' };
+
+export interface ChatResponseDto {
+  sessionId: string;
+  messages: Array<{ role: 'assistant'; content: string }>;
+  toolEvents: ToolEventDto[];
+  pendingConfirmation?: PendingConfirmationDto;
+  /** Set by /chat/confirm and /chat/cancel. */
+  outcome?: ChatOutcomeDto;
 }

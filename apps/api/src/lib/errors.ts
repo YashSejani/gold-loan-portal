@@ -10,6 +10,8 @@ export type ErrorCode =
   | 'DUPLICATE_APPLICATION'
   | 'QUOTE_CHANGED'
   | 'GOLD_RATE_UNAVAILABLE'
+  | 'AGENT_UNAVAILABLE'
+  | 'PENDING_NOT_FOUND'
   | 'INTERNAL_ERROR';
 
 export type ErrorDetails = Record<string, unknown>;
@@ -43,7 +45,7 @@ export class ValidationError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(code: 'PLAN_NOT_FOUND' | 'ROUTE_NOT_FOUND', message: string, fields: FieldError[] = []) {
+  constructor(code: 'PLAN_NOT_FOUND' | 'ROUTE_NOT_FOUND' | 'PENDING_NOT_FOUND', message: string, fields: FieldError[] = []) {
     super(404, code, message, fields);
   }
 }
