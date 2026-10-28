@@ -1,3 +1,7 @@
+# Fixed project name: any checkout of this repo (whatever its folder is called) uses the same database
+# container and volume, instead of starting a second Postgres that fights over port 5432.
+name: gold-loan-portal
+
 services:
   db:
     image: postgres:16
@@ -9,7 +13,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    # Creates the test database on first start. Inline (not a bind-mounted folder) so it works wherever the
+    # repo is cloned: Docker Desktop can only mount folders it shares, e.g. not /tmp.
+    configs:
+      - source: create-test-db
+        target: /docker-entrypoint-initdb.d/01-create-test-db.sql
     # Probe over TCP: during first-run init Postgres only listens on the unix socket,
     # so this only passes once init scripts (incl. goldloan_test) have finished.
     healthcheck:
@@ -17,6 +25,12 @@ services:
       interval: 2s
       timeout: 5s
       retries: 30
+
+configs:
+  create-test-db:
+    content: |
+      -- Runs once, on first start of an empty data volume.
+      CREATE DATABASE goldloan_test OWNER goldloan;
 
 volumes:
   pgdata:
