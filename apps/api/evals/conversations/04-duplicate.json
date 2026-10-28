@@ -1,0 +1,32 @@
+{
+  "id": "04-duplicate",
+  "title": "Applied 2 days ago: confirm reports the existing id",
+  "setup": {
+    "seedLeads": [
+      {
+        "daysAgo": 2,
+        "lead": {
+          "fullName": "Ravi Kumar",
+          "mobileNumber": "9876543210",
+          "grossWeightGrams": 50,
+          "netWeightGrams": 45,
+          "karat": 22,
+          "planId": "PLAN_EMI_01"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "user": "I want to apply for a gold loan. Name Ravi Kumar, mobile 9876543210, gross weight 50 g, net weight 45 g, 22 karat, Monthly EMI plan."
+    },
+    { "action": "confirm" }
+  ],
+  "expect": {
+    "toolsCalled": ["submit_application"],
+    "pendingConfirmation": true,
+    "leadCreated": false,
+    "replyMatches": ["GL-1001"],
+    "replyNotMatches": ["(has been|was|is now) submitted"]
+  }
+}

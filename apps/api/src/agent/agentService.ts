@@ -94,11 +94,16 @@ export function createAgentService({
     }
   }
 
-  /** Records an app event (system role, so it can't be forged by typing) and lets the model reply to it. */
+  /** Records an app event and lets the model reply to it; the template is used if the model can't. */
   async function replyToEvent(session: Session, event: string, fallback: string): Promise<TurnResult> {
-    const messages: ChatMessage[] = [...session.messages, { role: 'system', content: `${APP_EVENT_PREFIX} ${event}` }];
+    const messages: ChatMessage[] = [...session.messages, appEvent(event)];
     try {
       const turn = await runTurn(session.id, messages);
+      if (turn.reply === FALLBACK_REPLY) {
+        // An empty or looping answer must not hide what happened (e.g. a duplicate): say it with the template.
+        messages[messages.length - 1] = { role: 'assistant', content: fallback };
+        turn.reply = fallback;
+      }
       session.messages = messages;
       if (turn.pending) session.pending = turn.pending;
       return turn;
@@ -135,7 +140,7 @@ export function createAgentService({
       const session = (sessionId ? store.get(sessionId) : null) ?? store.create();
       if (logChatText) logger.info({ sessionId: session.id, message: maskMobilesInText(text) }, 'Chat message');
 
-      const messages: ChatMessage[] = [...session.messages, { role: 'user', content: text }];
+      const messages: ChatMessage[] = [...session.messages, { role: 'user', content: neutraliseAppMarker(text) }];
       const turn = await runTurn(session.id, messages);
 
       // Only a completed turn is kept, so a failed LLM call leaves history and pending untouched.
@@ -155,10 +160,11 @@ export function createAgentService({
         const fresh = await preparePending(pending.payload, now);
         if (quoteChanged(pending, fresh)) {
           session.pending = fresh;
-          session.messages.push({
-            role: 'system',
-            content: `${APP_EVENT_PREFIX} The quote changed before the user confirmed, so nothing was submitted. The user was shown this new summary to confirm: ${JSON.stringify(fresh.summary)}`,
-          });
+          session.messages.push(
+            appEvent(
+              `The quote changed before the user confirmed, so nothing was submitted. The user was shown this new summary to confirm: ${JSON.stringify(fresh.summary)}`,
+            ),
+          );
           throw new ConflictError(
             'QUOTE_CHANGED',
             'The quote changed since you reviewed it. Please check the new numbers and confirm again.',
@@ -238,6 +244,19 @@ export function createDefaultAgentService(): AgentService {
       : null,
     store: createSessionStore(),
   });
+}
+
+/**
+ * App events are user-role messages starting with "[App event]". Not system role: Gemini's OpenAI layer folds
+ * system messages into its instructions, so a trailing system message got an empty reply. They can't be forged,
+ * because the marker is neutralised in everything the user types (neutraliseAppMarker).
+ */
+function appEvent(text: string): ChatMessage {
+  return { role: 'user', content: `${APP_EVENT_PREFIX} ${text}` };
+}
+
+export function neutraliseAppMarker(text: string): string {
+  return text.replace(/\[\s*app\s*event\s*\]/gi, '(app event)');
 }
 
 function quoteChanged(before: PendingSubmission, after: PendingSubmission): boolean {

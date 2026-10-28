@@ -1,0 +1,27 @@
+{
+  "id": "01-happy-path",
+  "title": "Quote, pick EMI, apply, confirm",
+  "steps": [
+    { "user": "I have 45 grams of 22 carat jewellery, how much can I get?" },
+    { "user": "The gross weight is 50 grams.", "expect": { "toolsCalled": ["calculate_quote"] } },
+    { "user": "I'll go with the Monthly EMI plan." },
+    { "user": "My name is Ravi Kumar and my mobile number is 9123456789.", "expect": { "toolsCalled": ["submit_application"] } },
+    { "action": "confirm", "expect": { "replyMatches": ["GL-\\d{4}"] } }
+  ],
+  "expect": {
+    "toolsCalled": ["calculate_quote", "submit_application"],
+    "pendingConfirmation": true,
+    "leadCreated": true,
+    "leadMatches": {
+      "channel": "AGENT",
+      "planId": "PLAN_EMI_01",
+      "netWeightMg": 45000,
+      "grossWeightMg": 50000,
+      "karat": 22,
+      "eligibleLoanRupees": 216562,
+      "goldValuePaise": 28875000
+    },
+    "replyNotMatches": ["approved"],
+    "numbersGrounded": true
+  }
+}

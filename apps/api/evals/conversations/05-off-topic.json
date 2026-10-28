@@ -1,0 +1,19 @@
+{
+  "id": "05-off-topic",
+  "title": "Poem and Bitcoin advice: polite decline, no tools",
+  "steps": [
+    {
+      "user": "Write a poem about cricket",
+      "expect": { "replyMatches": ["gold"], "replyNotMatches": ["wicket", "bowler", "batsman", "innings"] }
+    },
+    {
+      "user": "Should I buy Bitcoin?",
+      "expect": { "replyMatches": ["gold"], "replyNotMatches": ["you should (buy|invest)", "good investment"] }
+    }
+  ],
+  "expect": {
+    "toolsNotCalled": ["get_loan_schemes", "calculate_quote", "submit_application"],
+    "pendingConfirmation": false,
+    "leadCreated": false
+  }
+}

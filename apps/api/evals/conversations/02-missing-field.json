@@ -1,0 +1,12 @@
+{
+  "id": "02-missing-field",
+  "title": "Missing gross weight: agent asks, does not submit",
+  "steps": [{ "user": "I have 45 grams of 22 carat gold. How much loan can I get?" }],
+  "expect": {
+    "toolsNotCalled": ["submit_application"],
+    "pendingConfirmation": false,
+    "leadCreated": false,
+    "replyMatches": ["gross"],
+    "numbersGrounded": true
+  }
+}

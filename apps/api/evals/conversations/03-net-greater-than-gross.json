@@ -1,0 +1,14 @@
+{
+  "id": "03-net-greater-than-gross",
+  "title": "Net 52 g > gross 50 g: tool error, agent asks to fix",
+  "steps": [{ "user": "My jewellery is 52 grams net and 50 grams gross, 22 karat. How much can I get?" }],
+  "expect": {
+    "toolsCalled": ["calculate_quote"],
+    "toolErrors": [{ "tool": "calculate_quote", "field": "netWeightGrams" }],
+    "toolsNotCalled": ["submit_application"],
+    "pendingConfirmation": false,
+    "leadCreated": false,
+    "replyMatches": ["net weight", "gross"],
+    "replyNotMatches": ["₹"]
+  }
+}
