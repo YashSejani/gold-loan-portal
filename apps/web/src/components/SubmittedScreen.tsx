@@ -1,5 +1,6 @@
 import { formatINR, type LeadDto } from '@goldloan/shared';
 import { useState } from 'react';
+import { displayMobile } from '../lib/mobile';
 import { Button } from './Button';
 
 export function SubmittedScreen({ lead, onStartOver }: { lead: LeadDto; onStartOver: () => void }) {
@@ -40,7 +41,7 @@ export function SubmittedScreen({ lead, onStartOver }: { lead: LeadDto; onStartO
         <dt className="text-slate-500">Name</dt>
         <dd className="text-right font-medium text-slate-900">{lead.fullName}</dd>
         <dt className="text-slate-500">Mobile</dt>
-        <dd className="text-right font-medium text-slate-900">{lead.mobileNumber}</dd>
+        <dd className="text-right font-medium text-slate-900">{displayMobile(lead.mobileNumber)}</dd>
         <dt className="text-slate-500">Plan</dt>
         <dd className="text-right font-medium text-slate-900">{lead.planName}</dd>
         <dt className="text-slate-500">Eligible loan</dt>

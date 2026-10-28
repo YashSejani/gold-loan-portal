@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatDateShortIST,
+  formatDateTimeIST,
   formatGrams,
   formatINR,
   formatPercent,
@@ -72,5 +73,15 @@ describe('formatPercent', () => {
     [0.105, '10.5%'],
   ])('%s → %s', (value, expected) => {
     expect(formatPercent(value)).toBe(expected);
+  });
+});
+
+describe('formatDateTimeIST', () => {
+  it('formats in en-IN, Asia/Kolkata', () => {
+    expect(formatDateTimeIST('2026-10-28T06:30:00.000Z')).toBe('28 Oct 2026, 12:00 pm');
+  });
+
+  it('rolls the date over to IST (20:00 UTC on 2 Oct is 01:30 IST on 3 Oct)', () => {
+    expect(formatDateTimeIST('2026-10-02T20:00:00.000Z')).toBe('3 Oct 2026, 1:30 am');
   });
 });

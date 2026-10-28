@@ -8,7 +8,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Header() {
   return (
     <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-2">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2">
         <span className="text-base font-semibold tracking-tight text-slate-900">
           Gold Loan <span className="text-brand-700">Portal</span>
         </span>

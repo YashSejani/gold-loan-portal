@@ -7,7 +7,7 @@ export function App() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-2xl px-4 py-6 sm:py-10">
+      <main className="px-4 py-6 sm:py-10">
         <Routes>
           <Route path="/" element={<ApplyPage />} />
           <Route path="/admin" element={<AdminPage />} />

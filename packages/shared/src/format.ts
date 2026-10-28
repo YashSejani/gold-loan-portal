@@ -53,3 +53,17 @@ const percent = new Intl.NumberFormat('en-IN', { style: 'percent', maximumFracti
 export function formatPercent(ratio: number): string {
   return percent.format(ratio);
 }
+
+const dateTimeIST = new Intl.DateTimeFormat('en-IN', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'Asia/Kolkata',
+});
+
+/** "28 Oct 2026, 12:00 pm", in Asia/Kolkata. */
+export function formatDateTimeIST(date: Date | string): string {
+  return dateTimeIST.format(typeof date === 'string' ? new Date(date) : date);
+}
