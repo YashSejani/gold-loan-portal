@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { z } from 'zod';
-import { LeadRequestSchema, MESSAGES, QuoteRequestSchema, zodToFields } from '../src/schemas';
+import { ApplicantDetailsSchema, LeadRequestSchema, MESSAGES, QuoteRequestSchema, zodToFields } from '../src/schemas';
 
 const validQuote = { netWeightGrams: 45, grossWeightGrams: 50, karat: 22 };
 const validLead = {
@@ -188,5 +188,42 @@ describe('zodToFields', () => {
     expect(fieldsOf(QuoteRequestSchema, 'not an object')).toEqual([
       { field: 'body', message: expect.any(String) },
     ]);
+  });
+});
+
+describe('ApplicantDetailsSchema (web step 1)', () => {
+  const { planId: _planId, ...details } = validLead;
+
+  it('accepts the five step-1 fields without planId', () => {
+    expect(ApplicantDetailsSchema.parse(details)).toEqual(details);
+  });
+
+  it('applies the same rules as LeadRequestSchema, including net <= gross', () => {
+    expect(fieldsOf(ApplicantDetailsSchema, { ...details, netWeightGrams: 52, mobileNumber: '98765' })).toEqual([
+      { field: 'mobileNumber', message: MESSAGES.mobileNumber },
+      { field: 'netWeightGrams', message: MESSAGES.netGreaterThanGross },
+    ]);
+  });
+});
+
+describe('net <= gross with other fields still invalid', () => {
+  it('is reported even when the rest of the form is empty (live form validation)', () => {
+    const fields = fieldsOf(ApplicantDetailsSchema, { grossWeightGrams: 50, netWeightGrams: 52 });
+    expect(fields).toContainEqual({ field: 'netWeightGrams', message: MESSAGES.netGreaterThanGross });
+  });
+
+  it('is reported alongside a missing name on POST /leads', () => {
+    const { fullName: _omit, ...withoutName } = validLead;
+    const fields = fieldsOf(LeadRequestSchema, { ...withoutName, netWeightGrams: 52 });
+    expect(fields).toEqual(
+      expect.arrayContaining([
+        { field: 'fullName', message: MESSAGES.fullName },
+        { field: 'netWeightGrams', message: MESSAGES.netGreaterThanGross },
+      ]),
+    );
+  });
+
+  it('does not run on a non-object body', () => {
+    expect(fieldsOf(QuoteRequestSchema, null)).toEqual([{ field: 'body', message: MESSAGES.body }]);
   });
 });

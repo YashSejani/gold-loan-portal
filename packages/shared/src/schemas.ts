@@ -28,8 +28,8 @@ const DECIMAL_MAX_3DP = /^(\d+)(?:\.(\d{1,3}))?$/;
  * Works on the decimal string (15 significant digits strips float artefacts like 0.1 + 0.2),
  * so there is no float multiplication. Same normalisation as apps/api/src/lib/money.ts.
  */
-function toMilligrams(grams: number): number | null {
-  if (!Number.isFinite(grams)) return null;
+function toMilligrams(grams: unknown): number | null {
+  if (typeof grams !== 'number' || !Number.isFinite(grams)) return null;
   const match = DECIMAL_MAX_3DP.exec(String(Number(grams.toPrecision(15))));
   if (!match) return null;
   const [, whole, fraction = ''] = match;
@@ -70,11 +70,8 @@ const planId = z.string({ error: MESSAGES.planId }).trim().min(1, { error: MESSA
 
 const channel = z.enum(CHANNELS, { error: MESSAGES.channel }).default('FORM');
 
-function netNotAboveGross(
-  data: { netWeightGrams: number; grossWeightGrams: number },
-  ctx: z.RefinementCtx,
-) {
-  // Zod v4 runs this even when a weight already failed its own checks: only compare two valid weights.
+// Data may be partly invalid here (see crossFieldCheck): only compare two individually valid weights.
+function netNotAboveGross(data: { netWeightGrams: unknown; grossWeightGrams: unknown }, ctx: z.RefinementCtx) {
   const netMg = toMilligrams(data.netWeightGrams);
   const grossMg = toMilligrams(data.grossWeightGrams);
   if (!isValidWeightMg(netMg) || !isValidWeightMg(grossMg)) return;
@@ -83,17 +80,27 @@ function netNotAboveGross(
   }
 }
 
+// By default Zod v4 skips object refinements when another field has a type error (e.g. name still empty),
+// which would hide "net > gross" until the whole form is filled. Run it for any object input instead.
+const crossFieldCheck = {
+  when: (payload: { value: unknown }) => typeof payload.value === 'object' && payload.value !== null,
+};
+
 // z.object strips unknown keys, so client-sent money fields (eligibleLoan, goldValue, …) never get through.
 export const QuoteRequestSchema = z
   .object({ netWeightGrams, grossWeightGrams, karat }, { error: MESSAGES.body })
-  .superRefine(netNotAboveGross);
+  .superRefine(netNotAboveGross, crossFieldCheck);
+
+const applicantDetailsShape = { fullName, mobileNumber, grossWeightGrams, netWeightGrams, karat };
+
+/** Step 1 of the web form: the lead without planId/channel (Zod v4 can't .pick() a refined object). */
+export const ApplicantDetailsSchema = z
+  .object(applicantDetailsShape, { error: MESSAGES.body })
+  .superRefine(netNotAboveGross, crossFieldCheck);
 
 export const LeadRequestSchema = z
-  .object(
-    { fullName, mobileNumber, grossWeightGrams, netWeightGrams, karat, planId, channel },
-    { error: MESSAGES.body },
-  )
-  .superRefine(netNotAboveGross);
+  .object({ ...applicantDetailsShape, planId, channel }, { error: MESSAGES.body })
+  .superRefine(netNotAboveGross, crossFieldCheck);
 
 /** Flattens a ZodError into the API `fields[]` shape: one entry per field, first issue wins. */
 export function zodToFields(error: z.ZodError): FieldError[] {
