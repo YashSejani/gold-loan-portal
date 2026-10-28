@@ -38,11 +38,9 @@ export function KaratPicker({ value, error, onChange, onBlur }: KaratPickerProps
           </label>
         ))}
       </div>
-      {error && (
-        <p id={errorId} className="mt-1.5 text-sm text-red-700">
-          {error}
-        </p>
-      )}
+      <p id={errorId} aria-live="polite" className={error ? 'mt-1.5 text-sm text-red-700' : 'sr-only'}>
+        {error}
+      </p>
       <p id={hintId} className="mt-1.5 text-sm text-slate-500">
         22K is the most common for jewellery.
       </p>

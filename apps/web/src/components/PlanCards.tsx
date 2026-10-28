@@ -9,14 +9,12 @@ interface PlanCardsProps {
   plans: PlanQuoteDto[];
   selectedPlanId: string | null;
   onSelect: (planId: string) => void;
-  /** Dimmed while a newer quote is loading. */
-  stale?: boolean;
 }
 
 /** One selectable card per plan, built on native radios (arrow keys move between plans). */
-export function PlanCards({ plans, selectedPlanId, onSelect, stale = false }: PlanCardsProps) {
+export function PlanCards({ plans, selectedPlanId, onSelect }: PlanCardsProps) {
   return (
-    <fieldset className={`flex flex-col gap-3 transition-opacity ${stale ? 'opacity-50' : ''}`}>
+    <fieldset className="flex flex-col gap-3">
       <legend className="mb-3 text-sm font-medium text-slate-800">Choose a plan</legend>
       {plans.map((plan) => {
         const nameId = `plan-${plan.planId}-name`;

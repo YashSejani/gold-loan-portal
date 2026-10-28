@@ -12,12 +12,13 @@ interface Duplicate {
   submittedAt: string;
 }
 
-function ReviewGroup({ title, editLabel, onEdit, children }: { title: string; editLabel: string; onEdit: () => void; children: ReactNode }) {
+function ReviewGroup({ title, editContext, onEdit, children }: { title: string; editContext: string; onEdit: () => void; children: ReactNode }) {
   return (
     <div className="border-b border-slate-100 pb-4 last:border-0 last:pb-0">
       <div className="mb-2 flex items-center justify-between gap-3">
         <h3 className="font-semibold text-slate-900">{title}</h3>
-        <Button variant="link" onClick={onEdit} aria-label={editLabel}>
+        {/* The accessible name starts with the visible word "Edit" (WCAG 2.5.3 label in name). */}
+        <Button variant="link" onClick={onEdit} aria-label={`Edit ${editContext}`}>
           Edit
         </Button>
       </div>
@@ -80,16 +81,16 @@ export function StepConfirm() {
   return (
     <div className="flex flex-col gap-6">
       <section aria-label="Review your application" className="flex flex-col gap-4 rounded-xl border border-slate-200 p-4 sm:p-5">
-        <ReviewGroup title="Your details" editLabel="Edit your details" onEdit={() => dispatch({ type: 'goTo', step: 1 })}>
+        <ReviewGroup title="Your details" editContext="your details" onEdit={() => dispatch({ type: 'goTo', step: 1 })}>
           <Row label="Name" value={data.fullName} />
           <Row label="Mobile" value={data.mobileNumber} />
         </ReviewGroup>
-        <ReviewGroup title="Jewellery" editLabel="Edit jewellery" onEdit={() => dispatch({ type: 'goTo', step: 2 })}>
+        <ReviewGroup title="Jewellery" editContext="jewellery" onEdit={() => dispatch({ type: 'goTo', step: 2 })}>
           <Row label="Gross weight" value={grams(details.grossWeightGrams)} />
           <Row label="Net weight" value={grams(details.netWeightGrams)} />
           <Row label="Karat" value={`${data.karat}K`} />
         </ReviewGroup>
-        <ReviewGroup title="Plan and offer" editLabel="Change plan" onEdit={() => dispatch({ type: 'goTo', step: 2 })}>
+        <ReviewGroup title="Plan and offer" editContext="plan" onEdit={() => dispatch({ type: 'goTo', step: 2 })}>
           <Row label="Plan" value={plan.planName} />
           <Row label="Eligible loan" value={<span className="text-base">{formatINR(plan.eligibleLoan)}</span>} />
           <Row label="Pure gold" value={formatGrams(state.quote.pureGoldGrams)} />
@@ -121,7 +122,7 @@ export function StepConfirm() {
               {error}
             </p>
           )}
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
             <Button variant="secondary" onClick={() => dispatch({ type: 'goTo', step: 2 })} disabled={pending}>
               Back
             </Button>

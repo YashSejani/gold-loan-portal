@@ -15,7 +15,7 @@ export function Stepper({ current }: { current: 1 | 2 | 3 }) {
               />
               <span
                 className={`text-sm ${
-                  state === 'current' ? 'font-semibold text-brand-800' : state === 'done' ? 'text-slate-700' : 'text-slate-400'
+                  state === 'current' ? 'font-semibold text-brand-800' : state === 'done' ? 'text-slate-700' : 'text-slate-500'
                 }`}
               >
                 <span className="sr-only">{`Step ${step}: `}</span>

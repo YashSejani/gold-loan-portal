@@ -4,11 +4,9 @@ export function rateLabel(quote: QuoteDto) {
   return `${formatINR(quote.rate24kPerGram)}/g (24K)`;
 }
 
-export function QuoteSummary({ quote, stale = false }: { quote: QuoteDto; stale?: boolean }) {
+export function QuoteSummary({ quote }: { quote: QuoteDto }) {
   return (
-    <dl
-      className={`grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4 transition-opacity sm:grid-cols-3 ${stale ? 'opacity-50' : ''}`}
-    >
+    <dl className="grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4 sm:grid-cols-3">
       <div>
         <dt className="text-sm text-slate-500">Pure gold</dt>
         <dd className="text-lg font-semibold text-slate-900">{formatGrams(quote.pureGoldGrams)}</dd>
@@ -27,11 +25,10 @@ export function QuoteSummary({ quote, stale = false }: { quote: QuoteDto; stale?
 
 export function QuoteSkeleton() {
   return (
-    <div role="status" aria-busy="true" className="flex flex-col gap-3">
-      <span className="sr-only">Calculating your quote…</span>
-      <div className="h-20 animate-pulse rounded-xl bg-slate-100" />
-      <div className="h-36 animate-pulse rounded-xl bg-slate-100" />
-      <div className="h-36 animate-pulse rounded-xl bg-slate-100" />
+    <div aria-hidden="true" className="flex flex-col gap-3">
+      <div className="h-20 rounded-xl bg-slate-100 motion-safe:animate-pulse" />
+      <div className="h-36 rounded-xl bg-slate-100 motion-safe:animate-pulse" />
+      <div className="h-36 rounded-xl bg-slate-100 motion-safe:animate-pulse" />
     </div>
   );
 }

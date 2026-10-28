@@ -23,6 +23,7 @@ export function AdminPage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <title>Leads · Gold Loan Portal</title>
       <header className="flex flex-col gap-2">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">Leads</h1>
         <p className="text-slate-600">All applications, newest first. Mobile numbers are masked.</p>
@@ -64,9 +65,9 @@ export function AdminPage() {
       {loading && leads.leads.length === 0 && (
         <div role="status" className="flex flex-col gap-3">
           <span className="sr-only">Loading applications…</span>
-          <div className="h-12 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-12 animate-pulse rounded-lg bg-slate-100" />
-          <div className="h-12 animate-pulse rounded-lg bg-slate-100" />
+          <div className="h-12 rounded-lg bg-slate-100 motion-safe:animate-pulse" />
+          <div className="h-12 rounded-lg bg-slate-100 motion-safe:animate-pulse" />
+          <div className="h-12 rounded-lg bg-slate-100 motion-safe:animate-pulse" />
         </div>
       )}
 
@@ -84,7 +85,7 @@ export function AdminPage() {
       )}
 
       {leads.leads.length > 0 && leads.status !== 'error' && (
-        <div className={loading ? 'opacity-60 transition-opacity' : ''}>
+        <div aria-busy={loading}>
           <LeadsList leads={leads.leads} />
         </div>
       )}

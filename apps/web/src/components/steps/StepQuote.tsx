@@ -1,5 +1,7 @@
+import { formatGrams, formatINR } from '@goldloan/shared';
 import { useEffect } from 'react';
 import { useDebouncedQuote } from '../../hooks/useDebouncedQuote';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import { useApplyForm, visibleError } from '../../state/applyForm';
 import { decimalOnly, isQuoteCurrent, quoteInputFrom, validateDetails, type DetailsField } from '../../state/details';
 import { Button } from '../Button';
@@ -14,16 +16,33 @@ export function StepQuote() {
   const { errors } = validateDetails(details);
   const input = quoteInputFrom(details);
   const live = useDebouncedQuote(input.net, input.gross, input.karat, state.quoteRefresh);
+  const online = useOnlineStatus();
+  const { status, quote, retry } = live;
 
   useEffect(() => {
-    if (live.status === 'success' && live.quote) dispatch({ type: 'quoteLoaded', quote: live.quote });
-  }, [live.status, live.quote, dispatch]);
+    if (status === 'success' && quote) dispatch({ type: 'quoteLoaded', quote });
+  }, [status, quote, dispatch]);
 
-  const quote = live.quote;
-  const current = live.status === 'success' && isQuoteCurrent(quote, details);
+  // Back online after a failed request: fetch the quote again without making the user ask.
+  // Runs only when `online` flips (not on every error), so a failing API is not retried in a loop.
+  useEffect(() => {
+    if (online && status === 'error') retry();
+  }, [online]);
+
+  const current = status === 'success' && isQuoteCurrent(quote, details);
+  // While a newer quote loads, keep showing the previous one (Next stays disabled until it is current).
+  // After an error or with invalid inputs it can't be refreshed, so hide it rather than show old numbers.
+  const shownQuote = current || status === 'loading' ? quote : null;
   const planOffered = !!quote?.plans.some((plan) => plan.planId === state.planId);
   const errorFor = (field: DetailsField) => visibleError(state, errors, field);
   const touch = (field: DetailsField) => () => dispatch({ type: 'touch', field });
+
+  const announcement =
+    status === 'loading'
+      ? 'Updating your quote…'
+      : current
+        ? `Quote updated. Pure gold ${formatGrams(quote.pureGoldGrams)}, gold value ${formatINR(quote.goldValueRupees)}.`
+        : '';
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,34 +86,44 @@ export function StepQuote() {
         />
       </div>
 
-      <div aria-live="polite" className="flex flex-col gap-5">
-        {live.status === 'error' && live.error && (
+      <div className="flex flex-col gap-5">
+        <p role="status" className="sr-only">
+          {announcement}
+        </p>
+
+        {status === 'error' && live.error && (
           <div role="alert" className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-red-800">{live.error.message}</p>
-            <Button variant="secondary" onClick={live.retry} className="sm:shrink-0">
+            <p className="text-sm text-red-800">
+              {online ? live.error.message : 'You are offline. Your quote will update when the connection is back.'}
+            </p>
+            <Button variant="secondary" onClick={retry} className="sm:shrink-0">
               Try again
             </Button>
           </div>
         )}
 
-        {quote ? (
+        {status === 'idle' && <p className="text-sm text-slate-600">Enter valid weights and karat to see your quote.</p>}
+
+        {shownQuote ? (
           <>
-            {!current && live.status === 'loading' && <p className="text-sm text-slate-500">Updating your quote…</p>}
-            {live.status === 'idle' && <p className="text-sm text-slate-500">Fix the weights above to update your quote.</p>}
-            <QuoteSummary quote={quote} stale={!current} />
+            {!current && (
+              <p aria-hidden="true" className="text-sm text-slate-600">
+                Updating your quote…
+              </p>
+            )}
+            <QuoteSummary quote={shownQuote} />
             <PlanCards
-              plans={quote.plans}
+              plans={shownQuote.plans}
               selectedPlanId={state.planId}
               onSelect={(planId) => dispatch({ type: 'selectPlan', planId })}
-              stale={!current}
             />
           </>
         ) : (
-          live.status !== 'error' && live.status !== 'idle' && <QuoteSkeleton />
+          status === 'loading' && <QuoteSkeleton />
         )}
       </div>
 
-      <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:justify-between">
         <Button variant="secondary" onClick={() => dispatch({ type: 'goTo', step: 1 })}>
           Back
         </Button>

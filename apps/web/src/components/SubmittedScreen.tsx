@@ -1,10 +1,14 @@
 import { formatINR, type LeadDto } from '@goldloan/shared';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { displayMobile } from '../lib/mobile';
 import { Button } from './Button';
 
 export function SubmittedScreen({ lead, onStartOver }: { lead: LeadDto; onStartOver: () => void }) {
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // The Submit button is gone: put focus on the confirmation so it is read out.
+  useEffect(() => headingRef.current?.focus(), []);
 
   async function copyId() {
     try {
@@ -18,7 +22,9 @@ export function SubmittedScreen({ lead, onStartOver }: { lead: LeadDto; onStartO
   return (
     <section className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
       <div className="flex flex-col gap-2">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900">Application submitted</h2>
+        <h2 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight text-slate-900 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand-700">
+          Application submitted
+        </h2>
         <p className="text-slate-600">Keep your application ID for any follow-up.</p>
       </div>
 

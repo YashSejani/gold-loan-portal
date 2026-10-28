@@ -8,7 +8,13 @@ const COLUMNS = ['Application ID', 'Name', 'Mobile', 'Net weight', 'Karat', 'Pla
 export function LeadsList({ leads }: { leads: LeadDto[] }) {
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white md:block">
+      {/* Focusable so keyboard users can scroll it when the columns don't fit. */}
+      <div
+        role="region"
+        aria-label="Leads table"
+        tabIndex={0}
+        className="hidden overflow-x-auto rounded-xl border border-slate-200 bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 md:block"
+      >
         <table className="w-full text-left text-sm">
           <thead className="border-b border-slate-200 bg-slate-50 text-slate-600">
             <tr>

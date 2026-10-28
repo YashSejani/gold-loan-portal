@@ -39,11 +39,9 @@ export function TextField({ id, label, hint, suffix, error, ...inputProps }: Tex
           </span>
         )}
       </div>
-      {error && (
-        <p id={errorId} className="text-sm text-red-700">
-          {error}
-        </p>
-      )}
+      <p id={errorId} aria-live="polite" className={error ? 'text-sm text-red-700' : 'sr-only'}>
+        {error}
+      </p>
       {hint && (
         <p id={hintId} className="text-sm text-slate-500">
           {hint}
