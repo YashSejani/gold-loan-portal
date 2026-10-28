@@ -230,7 +230,12 @@ export function createAgentService({
 /** Wires the real provider from config (or none when LLM_API_KEY is missing). */
 export function createDefaultAgentService(): AgentService {
   return createAgentService({
-    llm: config.llm.apiKey ? createOpenAiLlmClient(config.llm) : null,
+    llm: config.llm.apiKey
+      ? createOpenAiLlmClient(config.llm, {
+          onFallback: ({ model, status, reason, cooldownMs, next }) =>
+            defaultLogger.warn({ model, status, reason, cooldownSeconds: Math.round(cooldownMs / 1000), next }, 'LLM model unavailable, falling back'),
+        })
+      : null,
     store: createSessionStore(),
   });
 }
