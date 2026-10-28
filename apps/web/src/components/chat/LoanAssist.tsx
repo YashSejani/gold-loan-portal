@@ -1,11 +1,15 @@
 import { CHAT_MESSAGE_MAX_LENGTH } from '@goldloan/shared';
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useLoanAssist, type ChatItem } from '../../hooks/useLoanAssist';
+import { useVisualViewport } from '../../hooks/useVisualViewport';
 import { Button } from '../Button';
 import { ConfirmationCard } from './ConfirmationCard';
 import { QuoteCard } from './QuoteCard';
 
 const STARTERS = ['I have 45 g of 22K gold, how much can I get?', 'What plans do you have?'];
+
+/** Touch screens: focusing the input would pop the keyboard over the panel, so don't do it unasked. */
+const isTouchScreen = () => typeof window !== 'undefined' && !!window.matchMedia?.('(pointer: coarse)').matches;
 
 /** "Chat with Loan Assist" button plus the panel: full-screen sheet on mobile, side panel from 768 px. */
 export function LoanAssist() {
@@ -16,12 +20,17 @@ export function LoanAssist() {
   const panelRef = useRef<HTMLElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const wasOpen = useRef(false);
+  /** True when the last message was typed (not a starter chip): only then return focus to the input. */
+  const typing = useRef(false);
+  const viewport = useVisualViewport(open);
 
-  // Focus the input on open; give focus back to the button on close. Lock page scroll while open.
+  // Focus moves into the dialog on open (the input on desktop, the title on touch screens so the keyboard
+  // stays closed); it goes back to the button on close. Page scroll is locked while open.
   useEffect(() => {
     if (open) {
-      inputRef.current?.focus();
+      (isTouchScreen() ? titleRef.current : inputRef.current)?.focus();
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -33,22 +42,28 @@ export function LoanAssist() {
     };
   }, [open]);
 
-  // Keep the newest message in view.
+  // Keep the newest message in view, also when the keyboard opens and the panel gets shorter.
   useEffect(() => {
     const list = listRef.current;
     if (list) list.scrollTop = list.scrollHeight;
-  }, [chat.items.length, chat.waiting]);
+  }, [chat.items.length, chat.waiting, viewport?.height]);
 
-  // Put focus back in the input once a reply arrives (it was disabled while waiting).
+  // After a reply, put focus back in the input (it was disabled while waiting), but only if the user was typing.
   useEffect(() => {
-    if (open && !chat.waiting) inputRef.current?.focus();
+    if (open && !chat.waiting && (typing.current || !isTouchScreen())) inputRef.current?.focus();
   }, [chat.waiting, open]);
 
   function submit(event: FormEvent) {
     event.preventDefault();
     if (chat.waiting || !draft.trim()) return;
+    typing.current = true;
     void chat.send(draft);
     setDraft('');
+  }
+
+  function sendStarter(text: string) {
+    typing.current = false;
+    void chat.send(text);
   }
 
   // Esc closes; Tab stays inside the panel while it is open (it is modal).
@@ -86,11 +101,18 @@ export function LoanAssist() {
           aria-modal="true"
           aria-labelledby="loan-assist-title"
           onKeyDown={handleKeyDown}
+          // Sized to the visible area, so the header and input stay on screen above a phone keyboard.
+          style={viewport ? { top: viewport.offsetTop, height: viewport.height, bottom: 'auto' } : undefined}
           className="fixed inset-0 z-50 flex flex-col bg-white md:left-auto md:w-[420px] md:border-l md:border-slate-200 md:shadow-xl"
         >
-          <header className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
+          <header className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-200 px-4 py-3">
             <div>
-              <h2 id="loan-assist-title" className="font-semibold text-slate-900">
+              <h2
+                ref={titleRef}
+                id="loan-assist-title"
+                tabIndex={-1}
+                className="rounded-sm font-semibold text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
+              >
                 Loan Assist
               </h2>
               <p className="text-sm text-slate-600">Quotes come from our calculator. Preliminary offers only.</p>
@@ -100,7 +122,7 @@ export function LoanAssist() {
             </Button>
           </header>
 
-          <div ref={listRef} className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
+          <div ref={listRef} className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain px-4 py-4">
             {chat.items.length === 0 && (
               <div className="flex flex-col gap-3">
                 <p className="text-sm text-slate-600">
@@ -110,7 +132,7 @@ export function LoanAssist() {
                   <button
                     key={starter}
                     type="button"
-                    onClick={() => void chat.send(starter)}
+                    onClick={() => sendStarter(starter)}
                     disabled={chat.waiting}
                     className="min-h-11 rounded-full border border-brand-200 bg-brand-50 px-4 py-2 text-left text-sm text-brand-800 hover:bg-brand-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700"
                   >
@@ -141,7 +163,7 @@ export function LoanAssist() {
             {chat.announcement}
           </p>
 
-          <form onSubmit={submit} className="flex gap-2 border-t border-slate-200 px-4 py-3">
+          <form onSubmit={submit} className="flex shrink-0 gap-2 border-t border-slate-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
             <label htmlFor="loan-assist-input" className="sr-only">
               Message Loan Assist
             </label>
@@ -151,6 +173,7 @@ export function LoanAssist() {
               type="text"
               autoComplete="off"
               maxLength={CHAT_MESSAGE_MAX_LENGTH}
+              enterKeyHint="send"
               placeholder="Type your message"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}

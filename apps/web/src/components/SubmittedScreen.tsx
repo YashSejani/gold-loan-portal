@@ -1,5 +1,5 @@
 import { formatINR, type LeadDto } from '@goldloan/shared';
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { displayMobile } from '../lib/mobile';
 import { Button } from './Button';
 
@@ -8,7 +8,8 @@ export function SubmittedScreen({ lead, onStartOver }: { lead: LeadDto; onStartO
   const headingRef = useRef<HTMLHeadingElement>(null);
 
   // The Submit button is gone: put focus on the confirmation so it is read out.
-  useEffect(() => headingRef.current?.focus(), []);
+  // Layout effect: focus is in place before the screen is painted, not a moment later.
+  useLayoutEffect(() => headingRef.current?.focus(), []);
 
   async function copyId() {
     try {

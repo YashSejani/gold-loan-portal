@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Stepper } from '../components/Stepper';
 import { LoanAssist } from '../components/chat/LoanAssist';
 import { SubmittedScreen } from '../components/SubmittedScreen';
@@ -19,7 +19,8 @@ function ApplyFlow() {
   const previousStep = useRef(state.step);
 
   // The button that changed the step is gone, so move focus to the new step's heading.
-  useEffect(() => {
+  // Layout effect so focus moves before the new step is painted (no moment with focus on <body>).
+  useLayoutEffect(() => {
     if (previousStep.current !== state.step) headingRef.current?.focus();
     previousStep.current = state.step;
   }, [state.step]);

@@ -262,3 +262,47 @@ describe('Loan Assist panel', () => {
     expect(within(screen.getByRole('dialog')).getByText('Hello!', { ignore: '[role=status]' })).toBeInTheDocument();
   });
 });
+
+describe('Loan Assist on phones', () => {
+  function asTouchScreen() {
+    vi.stubGlobal('matchMedia', (query: string) => ({ matches: query === '(pointer: coarse)', media: query, addEventListener() {}, removeEventListener() {} }));
+  }
+
+  it('does not pop the keyboard on open: focus goes to the title, not the input', async () => {
+    asTouchScreen();
+    mockChatApi({});
+    await openChat();
+    expect(screen.getByRole('heading', { name: 'Loan Assist' })).toHaveFocus();
+    expect(screen.getByLabelText('Message Loan Assist')).not.toHaveFocus();
+  });
+
+  it('after a starter chip reply, the input is not focused (keyboard stays closed)', async () => {
+    asTouchScreen();
+    mockChatApi({ chat: [() => json(200, reply('Hello!'))] });
+    const dialog = await openChat();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'What plans do you have?' }));
+    await findBubble('Hello!');
+    expect(screen.getByLabelText('Message Loan Assist')).not.toHaveFocus();
+  });
+
+  it('sizes the panel to the visible area above the keyboard, and follows it', async () => {
+    const listeners: Array<() => void> = [];
+    const viewport = { height: 420, offsetTop: 0, addEventListener: (_: string, fn: () => void) => listeners.push(fn), removeEventListener() {} };
+    vi.stubGlobal('visualViewport', viewport);
+    mockChatApi({});
+    const dialog = await openChat();
+    expect(dialog.style.height).toBe('420px');
+
+    viewport.height = 300; // keyboard opened
+    viewport.offsetTop = 120;
+    act(() => listeners.forEach((fn) => fn()));
+    expect(dialog.style.height).toBe('300px');
+    expect(dialog.style.top).toBe('120px');
+  });
+
+  it('the input asks the phone keyboard for a Send key', async () => {
+    mockChatApi({});
+    await openChat();
+    expect(screen.getByLabelText('Message Loan Assist')).toHaveAttribute('enterkeyhint', 'send');
+  });
+});
