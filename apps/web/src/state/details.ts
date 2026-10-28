@@ -1,4 +1,4 @@
-import { ApplicantDetailsSchema, zodToFields, type ApplicantDetails, type Karat } from '@goldloan/shared';
+import { ApplicantDetailsSchema, zodToFields, type ApplicantDetails, type Karat, type QuoteDto } from '@goldloan/shared';
 
 export type DetailsField = 'fullName' | 'mobileNumber' | 'grossWeightGrams' | 'netWeightGrams' | 'karat';
 
@@ -55,4 +55,32 @@ export function digitsOnly(text: string, maxLength: number): string {
 export function decimalOnly(text: string): string {
   const [whole = '', ...rest] = text.replace(/[^\d.]/g, '').split('.');
   return rest.length > 0 ? `${whole}.${rest.join('')}` : whole;
+}
+
+/** The quote inputs as the API expects them (numbers where well-formed); validated by the quote hook. */
+export function quoteInputFrom(draft: DetailsDraft) {
+  return {
+    net: weightValue(draft.netWeightGrams),
+    gross: weightValue(draft.grossWeightGrams),
+    karat: draft.karat ?? undefined,
+  };
+}
+
+/** True when the quote was calculated for exactly the inputs currently in the form. */
+export function isQuoteCurrent(quote: QuoteDto | null, draft: DetailsDraft): quote is QuoteDto {
+  if (!quote) return false;
+  const { net, gross, karat } = quoteInputFrom(draft);
+  return quote.input.netWeightGrams === net && quote.input.grossWeightGrams === gross && quote.input.karat === karat;
+}
+
+export const DETAILS_FIELDS: readonly DetailsField[] = [
+  'fullName',
+  'mobileNumber',
+  'grossWeightGrams',
+  'netWeightGrams',
+  'karat',
+];
+
+export function isDetailsField(field: string): field is DetailsField {
+  return (DETAILS_FIELDS as readonly string[]).includes(field);
 }

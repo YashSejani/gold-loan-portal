@@ -1,17 +1,8 @@
-import type { LoanScheme, RepaymentType } from '@prisma/client';
+import type { SchemeDto } from '@goldloan/shared';
+import type { LoanScheme } from '@prisma/client';
 import { prisma } from '../db';
 import { NotFoundError } from '../lib/errors';
 import { bpsToPercent, bpsToRatio, capLtvBps } from '../lib/money';
-
-export interface SchemeDto {
-  id: string;
-  name: string;
-  annualInterestRate: number;
-  tenureMonths: number;
-  maxLtv: number;
-  repaymentType: RepaymentType;
-  description: string;
-}
 
 export function toSchemeDto(scheme: LoanScheme): SchemeDto {
   return {

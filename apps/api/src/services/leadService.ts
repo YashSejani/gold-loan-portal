@@ -1,5 +1,5 @@
-import { LeadRequestSchema, maskMobile, zodToFields, type Channel } from '@goldloan/shared';
-import type { Lead, LeadStatus, LoanScheme } from '@prisma/client';
+import { LeadRequestSchema, maskMobile, zodToFields, type Channel, type LeadDto } from '@goldloan/shared';
+import type { Lead, LoanScheme } from '@prisma/client';
 import { z } from 'zod';
 import { prisma } from '../db';
 import { ConflictError, InternalError, ValidationError } from '../lib/errors';
@@ -8,23 +8,6 @@ import * as quoteService from './quoteService';
 import { getActiveById } from './schemeService';
 
 const DUPLICATE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
-
-export interface LeadDto {
-  applicationId: string;
-  status: LeadStatus;
-  createdAt: string;
-  fullName: string;
-  mobileNumber: string; // always masked
-  netWeightGrams: number;
-  grossWeightGrams: number;
-  karat: number;
-  planId: string;
-  planName: string;
-  pureGoldGrams: number;
-  goldValueRupees: number;
-  appliedLtv: number;
-  eligibleLoan: number;
-}
 
 type LeadWithPlan = Lead & { plan: LoanScheme };
 

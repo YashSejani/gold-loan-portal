@@ -1,5 +1,8 @@
 import { Stepper } from '../components/Stepper';
+import { SubmittedScreen } from '../components/SubmittedScreen';
+import { StepConfirm } from '../components/steps/StepConfirm';
 import { StepDetails } from '../components/steps/StepDetails';
+import { StepQuote } from '../components/steps/StepQuote';
 import { ApplyFormProvider, useApplyForm } from '../state/applyForm';
 
 const STEP_TITLES = {
@@ -20,26 +23,17 @@ function ApplyFlow() {
         </p>
       </header>
 
-      <section className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-        <Stepper current={state.step} />
-        <h2 className="text-lg font-semibold text-slate-900">{STEP_TITLES[state.step]}</h2>
-
-        {state.step === 1 && <StepDetails />}
-
-        {state.step > 1 && (
-          // Placeholder until the quote and confirm steps are built.
-          <div className="flex flex-col gap-4">
-            <p className="text-slate-600">This step is coming next.</p>
-            <button
-              type="button"
-              onClick={() => dispatch({ type: 'goTo', step: 1 })}
-              className="h-12 rounded-lg border border-slate-300 bg-white px-5 font-medium text-slate-800 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-700 sm:w-auto sm:self-start"
-            >
-              Back
-            </button>
-          </div>
-        )}
-      </section>
+      {state.submitted ? (
+        <SubmittedScreen lead={state.submitted} onStartOver={() => dispatch({ type: 'reset' })} />
+      ) : (
+        <section className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+          <Stepper current={state.step} />
+          <h2 className="text-lg font-semibold text-slate-900">{STEP_TITLES[state.step]}</h2>
+          {state.step === 1 && <StepDetails />}
+          {state.step === 2 && <StepQuote />}
+          {state.step === 3 && <StepConfirm />}
+        </section>
+      )}
     </div>
   );
 }

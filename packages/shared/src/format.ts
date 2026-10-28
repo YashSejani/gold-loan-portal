@@ -39,3 +39,17 @@ const shortDateIST = new Intl.DateTimeFormat('en-IN', {
 export function formatDateShortIST(date: Date | string): string {
   return shortDateIST.format(typeof date === 'string' ? new Date(date) : date);
 }
+
+const grams = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 3 });
+
+/** 41.25 → "41.25 g". Display only. */
+export function formatGrams(value: number): string {
+  return `${grams.format(value)} g`;
+}
+
+const percent = new Intl.NumberFormat('en-IN', { style: 'percent', maximumFractionDigits: 2 });
+
+/** A ratio from the API (0.75) → "75%". Intl does the scaling; no maths in the UI. */
+export function formatPercent(ratio: number): string {
+  return percent.format(ratio);
+}

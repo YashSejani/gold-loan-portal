@@ -1,5 +1,5 @@
-import type { QuoteRequest } from '@goldloan/shared';
-import type { LoanScheme, RepaymentType } from '@prisma/client';
+import type { QuoteDto, QuoteRequest } from '@goldloan/shared';
+import type { LoanScheme } from '@prisma/client';
 import { InternalError, ValidationError } from '../lib/errors';
 import {
   bpsToPercent,
@@ -29,25 +29,6 @@ export interface PlanQuote {
   plan: LoanScheme;
   appliedLtvBps: number;
   eligibleLoanRupees: number;
-}
-
-export interface PlanQuoteDto {
-  planId: string;
-  planName: string;
-  appliedLtv: number;
-  eligibleLoan: number;
-  annualInterestRate: number;
-  tenureMonths: number;
-  repaymentType: RepaymentType;
-}
-
-export interface QuoteDto {
-  input: QuoteRequest;
-  rate24kPerGram: number;
-  pureGoldGrams: number;
-  goldValueRupees: number;
-  goldValuePaise: number;
-  plans: PlanQuoteDto[];
 }
 
 /**

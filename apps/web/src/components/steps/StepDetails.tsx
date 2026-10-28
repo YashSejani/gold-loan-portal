@@ -1,16 +1,16 @@
 import type { FormEvent } from 'react';
-import { useApplyForm } from '../../state/applyForm';
+import { useApplyForm, visibleError } from '../../state/applyForm';
 import { decimalOnly, digitsOnly, validateDetails, type DetailsField } from '../../state/details';
 import { KaratPicker } from '../KaratPicker';
 import { TextField } from '../TextField';
 
 export function StepDetails() {
   const { state, dispatch } = useApplyForm();
-  const { details, touched } = state;
+  const { details } = state;
   const { data, errors } = validateDetails(details);
 
   // Errors appear after a field's first blur, then follow every keystroke.
-  const errorFor = (field: DetailsField) => (touched[field] ? errors[field] : undefined);
+  const errorFor = (field: DetailsField) => visibleError(state, errors, field);
   const touch = (field: DetailsField) => () => dispatch({ type: 'touch', field });
 
   function handleSubmit(event: FormEvent) {

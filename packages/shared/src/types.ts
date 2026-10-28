@@ -18,3 +18,55 @@ export interface FieldError {
   field: string;
   message: string;
 }
+
+// ---- Response DTOs (CLAUDE.md §6): the one contract the API returns and the web reads ----
+
+export type RepaymentType = 'BULLET' | 'EMI';
+export type LeadStatus = 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+
+export interface SchemeDto {
+  id: string;
+  name: string;
+  annualInterestRate: number;
+  tenureMonths: number;
+  maxLtv: number;
+  repaymentType: RepaymentType;
+  description: string;
+}
+
+export interface PlanQuoteDto {
+  planId: string;
+  planName: string;
+  appliedLtv: number;
+  eligibleLoan: number;
+  annualInterestRate: number;
+  tenureMonths: number;
+  repaymentType: RepaymentType;
+}
+
+export interface QuoteDto {
+  input: QuoteRequest;
+  rate24kPerGram: number;
+  pureGoldGrams: number;
+  goldValueRupees: number;
+  goldValuePaise: number;
+  plans: PlanQuoteDto[];
+}
+
+export interface LeadDto {
+  applicationId: string;
+  status: LeadStatus;
+  createdAt: string;
+  fullName: string;
+  /** Always masked, e.g. 9876XXXX10. */
+  mobileNumber: string;
+  netWeightGrams: number;
+  grossWeightGrams: number;
+  karat: number;
+  planId: string;
+  planName: string;
+  pureGoldGrams: number;
+  goldValueRupees: number;
+  appliedLtv: number;
+  eligibleLoan: number;
+}

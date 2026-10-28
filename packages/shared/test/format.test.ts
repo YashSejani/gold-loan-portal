@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatDateShortIST, formatINR, maskMobile, maskMobilesInText } from '../src/format';
+import {
+  formatDateShortIST,
+  formatGrams,
+  formatINR,
+  formatPercent,
+  maskMobile,
+  maskMobilesInText,
+} from '../src/format';
 
 describe('maskMobile', () => {
   it('keeps first 4 and last 2 digits', () => {
@@ -44,5 +51,26 @@ describe('maskMobilesInText', () => {
 
   it('does not mask numbers starting with 0-5 or embedded in longer digit runs', () => {
     expect(maskMobilesInText('5876543210 and 198765432100')).toBe('5876543210 and 198765432100');
+  });
+});
+
+describe('formatGrams', () => {
+  it.each([
+    [41.25, '41.25 g'],
+    [7.5, '7.5 g'],
+    [11.316, '11.316 g'],
+    [1000, '1,000 g'],
+  ])('%s → %s', (value, expected) => {
+    expect(formatGrams(value)).toBe(expected);
+  });
+});
+
+describe('formatPercent', () => {
+  it.each([
+    [0.75, '75%'],
+    [0.7, '70%'],
+    [0.105, '10.5%'],
+  ])('%s → %s', (value, expected) => {
+    expect(formatPercent(value)).toBe(expected);
   });
 });
